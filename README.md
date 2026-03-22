@@ -4,13 +4,51 @@ Unified abstraction layer for observing AI coding agent actions. Nose auto-disco
 
 **Lang:** Rust · **Output:** JSONL
 
-## Usage
+## Installation
 
 ```bash
+cargo install --path .
+```
+
+Or build locally:
+
+```bash
+cargo build --release
+# binary at target/release/nose
+```
+
+## Usage
+
+Run from within any project directory where you've used an AI coding agent:
+
+```bash
+cd my-project/
 nose parse
 ```
 
-No flags, no config. Nose detects installed agents, finds their session files, and outputs unified events to stdout.
+Nose scopes to the **current working directory** — it only parses sessions from the project you're in, not all projects on your machine.
+
+Output goes to stdout as JSONL (one JSON event per line). Pipe it however you need:
+
+```bash
+# Save to file
+nose parse > events.jsonl
+
+# Count events
+nose parse | wc -l
+
+# Filter for tool calls only
+nose parse | jq 'select(.event_type == "ToolCall")'
+
+# See what files the agent touched
+nose parse | jq 'select(.event_type == "FileWrite") | .path'
+
+# Get all shell commands the agent ran
+nose parse | jq 'select(.event_type == "CommandExec") | .command'
+
+# Count events by type
+nose parse | jq -r '.event_type' | sort | uniq -c | sort -rn
+```
 
 Nose reads files only — it does not install hooks or run agents.
 
