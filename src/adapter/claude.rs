@@ -185,8 +185,10 @@ impl ClaudeAdapter {
                         None
                     } else {
                         content_str.map(|s| {
-                            let truncated = &s[..s.len().min(200)];
-                            truncated.to_string()
+                            s.char_indices()
+                                .take_while(|&(i, _)| i < 200)
+                                .map(|(_, c)| c)
+                                .collect::<String>()
                         })
                     };
 
