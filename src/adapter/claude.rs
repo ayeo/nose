@@ -43,107 +43,104 @@ impl ClaudeAdapter {
         // Process content blocks
         if let Some(content) = msg["content"].as_array() {
             for block in content {
-                match block["type"].as_str() {
-                    Some("tool_use") => {
-                        let tool_name = block["name"].as_str().unwrap_or("unknown").to_string();
-                        let input = block["input"].clone();
+                if let Some("tool_use") = block["type"].as_str() {
+                    let tool_name = block["name"].as_str().unwrap_or("unknown").to_string();
+                    let input = block["input"].clone();
 
-                        events.push(self.make_event(
-                            session_id, workspace, timestamp, Confidence::Native,
-                            EventData::ToolCall {
-                                tool_name: tool_name.clone(),
-                                input: input.clone(),
-                            },
-                            Some(block.clone()),
-                        ));
+                    events.push(self.make_event(
+                        session_id, workspace, timestamp, Confidence::Native,
+                        EventData::ToolCall {
+                            tool_name: tool_name.clone(),
+                            input: input.clone(),
+                        },
+                        Some(block.clone()),
+                    ));
 
-                        // Infer higher-level events from tool name
-                        match tool_name.as_str() {
-                            "Read" => {
-                                if let Some(path) = input["file_path"].as_str() {
-                                    events.push(self.make_event(
-                                        session_id, workspace, timestamp, Confidence::Inferred,
-                                        EventData::FileRead { path: path.to_string() },
-                                        None,
-                                    ));
-                                }
-                            }
-                            "Write" => {
-                                if let Some(path) = input["file_path"].as_str() {
-                                    let bytes = input["content"].as_str().map(|s| s.len() as u64);
-                                    events.push(self.make_event(
-                                        session_id, workspace, timestamp, Confidence::Inferred,
-                                        EventData::FileWrite { path: path.to_string(), bytes_written: bytes },
-                                        None,
-                                    ));
-                                }
-                            }
-                            "Edit" => {
-                                if let Some(path) = input["file_path"].as_str() {
-                                    events.push(self.make_event(
-                                        session_id, workspace, timestamp, Confidence::Inferred,
-                                        EventData::FileWrite { path: path.to_string(), bytes_written: None },
-                                        None,
-                                    ));
-                                }
-                            }
-                            "Bash" => {
-                                let command = input["command"].as_str().unwrap_or("").to_string();
-                                let cwd = input["cwd"].as_str().map(|s| s.to_string());
+                    // Infer higher-level events from tool name
+                    match tool_name.as_str() {
+                        "Read" => {
+                            if let Some(path) = input["file_path"].as_str() {
                                 events.push(self.make_event(
                                     session_id, workspace, timestamp, Confidence::Inferred,
-                                    EventData::CommandExec {
-                                        command,
-                                        cwd,
-                                        exit_code: None,
-                                        duration_ms: None,
-                                    },
+                                    EventData::FileRead { path: path.to_string() },
                                     None,
                                 ));
                             }
-                            name if name.starts_with("mcp__") => {
-                                let parts: Vec<&str> = name.splitn(3, "__").collect();
-                                let server = parts.get(1).unwrap_or(&"unknown").to_string();
-                                let method = parts.get(2).unwrap_or(&"unknown").to_string();
-                                events.push(self.make_event(
-                                    session_id, workspace, timestamp, Confidence::Inferred,
-                                    EventData::McpCall {
-                                        server_name: server,
-                                        method,
-                                        params: Some(input),
-                                    },
-                                    None,
-                                ));
-                            }
-                            "WebFetch" | "WebSearch" => {
-                                let url = input["url"].as_str().unwrap_or("").to_string();
-                                events.push(self.make_event(
-                                    session_id, workspace, timestamp, Confidence::Inferred,
-                                    EventData::NetworkCall {
-                                        method: "GET".to_string(),
-                                        url,
-                                        status_code: None,
-                                        duration_ms: None,
-                                    },
-                                    None,
-                                ));
-                            }
-                            "Agent" => {
-                                let subagent_name = input["subagent_type"].as_str().unwrap_or("agent").to_string();
-                                let task = input["description"].as_str().map(|s| s.to_string());
-                                events.push(self.make_event(
-                                    session_id, workspace, timestamp, Confidence::Inferred,
-                                    EventData::SubagentStart {
-                                        subagent_name,
-                                        task,
-                                    },
-                                    None,
-                                ));
-                            }
-                            _ => {}
                         }
+                        "Write" => {
+                            if let Some(path) = input["file_path"].as_str() {
+                                let bytes = input["content"].as_str().map(|s| s.len() as u64);
+                                events.push(self.make_event(
+                                    session_id, workspace, timestamp, Confidence::Inferred,
+                                    EventData::FileWrite { path: path.to_string(), bytes_written: bytes },
+                                    None,
+                                ));
+                            }
+                        }
+                        "Edit" => {
+                            if let Some(path) = input["file_path"].as_str() {
+                                events.push(self.make_event(
+                                    session_id, workspace, timestamp, Confidence::Inferred,
+                                    EventData::FileWrite { path: path.to_string(), bytes_written: None },
+                                    None,
+                                ));
+                            }
+                        }
+                        "Bash" => {
+                            let command = input["command"].as_str().unwrap_or("").to_string();
+                            let cwd = input["cwd"].as_str().map(|s| s.to_string());
+                            events.push(self.make_event(
+                                session_id, workspace, timestamp, Confidence::Inferred,
+                                EventData::CommandExec {
+                                    command,
+                                    cwd,
+                                    exit_code: None,
+                                    duration_ms: None,
+                                },
+                                None,
+                            ));
+                        }
+                        name if name.starts_with("mcp__") => {
+                            let parts: Vec<&str> = name.splitn(3, "__").collect();
+                            let server = parts.get(1).unwrap_or(&"unknown").to_string();
+                            let method = parts.get(2).unwrap_or(&"unknown").to_string();
+                            events.push(self.make_event(
+                                session_id, workspace, timestamp, Confidence::Inferred,
+                                EventData::McpCall {
+                                    server_name: server,
+                                    method,
+                                    params: Some(input),
+                                },
+                                None,
+                            ));
+                        }
+                        "WebFetch" | "WebSearch" => {
+                            let url = input["url"].as_str().unwrap_or("").to_string();
+                            events.push(self.make_event(
+                                session_id, workspace, timestamp, Confidence::Inferred,
+                                EventData::NetworkCall {
+                                    method: "GET".to_string(),
+                                    url,
+                                    status_code: None,
+                                    duration_ms: None,
+                                },
+                                None,
+                            ));
+                        }
+                        "Agent" => {
+                            let subagent_name = input["subagent_type"].as_str().unwrap_or("agent").to_string();
+                            let task = input["description"].as_str().map(|s| s.to_string());
+                            events.push(self.make_event(
+                                session_id, workspace, timestamp, Confidence::Inferred,
+                                EventData::SubagentStart {
+                                    subagent_name,
+                                    task,
+                                },
+                                None,
+                            ));
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }
@@ -188,7 +185,7 @@ impl Adapter for ClaudeAdapter {
 
     fn detect(&self, path: &Path) -> bool {
         path.to_string_lossy().contains(".claude/projects/")
-            && path.extension().map_or(false, |ext| ext == "jsonl")
+            && path.extension().is_some_and(|ext| ext == "jsonl")
     }
 
     fn parse(&self, reader: &mut dyn Read, session_id: &str, workspace: &str) -> Result<Vec<Event>, AdapterError> {
@@ -206,12 +203,9 @@ impl Adapter for ClaudeAdapter {
                 Err(_) => continue,
             };
 
-            match line["type"].as_str() {
-                Some("assistant") => {
-                    events.extend(self.parse_assistant_message(&line, session_id, workspace));
-                }
-                // user, progress, file-history-snapshot, system — skip for v1
-                _ => {}
+            // user, progress, file-history-snapshot, system — skip for v1
+            if let Some("assistant") = line["type"].as_str() {
+                events.extend(self.parse_assistant_message(&line, session_id, workspace));
             }
         }
 
