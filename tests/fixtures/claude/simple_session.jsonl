@@ -1,0 +1,2 @@
+{"type":"user","sessionId":"sess_01","cwd":"/project","timestamp":"2026-03-22T10:00:00Z","uuid":"u1","parentUuid":null,"isSidechain":false,"version":"2.1.56","message":{"role":"user","content":"hello"}}
+{"type":"assistant","sessionId":"sess_01","cwd":"/project","timestamp":"2026-03-22T10:00:01Z","uuid":"u2","parentUuid":"u1","isSidechain":false,"version":"2.1.56","message":{"model":"claude-opus-4-6","id":"msg_01","type":"message","role":"assistant","content":[{"type":"text","text":"Hello!"}],"stop_reason":"end_turn","usage":{"input_tokens":100,"output_tokens":50}}}
