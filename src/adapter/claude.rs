@@ -26,7 +26,10 @@ impl ClaudeAdapter {
     fn parse_assistant_message(&self, line: &serde_json::Value, session_id: &str, workspace: &str, tool_id_to_name: &mut HashMap<String, String>) -> Vec<Event> {
         let mut events = Vec::new();
         let msg = &line["message"];
-        let timestamp = self.parse_timestamp(line);
+        let timestamp = match self.parse_timestamp(line) {
+            Some(ts) => ts,
+            None => return events,
+        };
 
         // ModelRequest
         let model = msg["model"].as_str().unwrap_or("unknown").to_string();
@@ -170,7 +173,10 @@ impl ClaudeAdapter {
     fn parse_user_message(&self, line: &serde_json::Value, session_id: &str, workspace: &str, tool_id_to_name: &HashMap<String, String>) -> Vec<Event> {
         let mut events = Vec::new();
         let msg = &line["message"];
-        let timestamp = self.parse_timestamp(line);
+        let timestamp = match self.parse_timestamp(line) {
+            Some(ts) => ts,
+            None => return events,
+        };
 
         if let Some(content) = msg["content"].as_array() {
             for block in content {
@@ -179,12 +185,21 @@ impl ClaudeAdapter {
                     let tool_name = tool_id_to_name.get(tool_use_id).cloned().unwrap_or_else(|| "unknown".to_string());
                     let is_error = block["is_error"].as_bool().unwrap_or(false);
 
-                    let content_str = block["content"].as_str();
+                    // content can be a string or an array of {type: "text", text: "..."}
+                    let content_str = block["content"].as_str().map(|s| s.to_string())
+                        .or_else(|| {
+                            block["content"].as_array().map(|arr| {
+                                arr.iter()
+                                    .filter_map(|c| c["text"].as_str())
+                                    .collect::<Vec<_>>()
+                                    .join("\n")
+                            })
+                        });
 
                     let output_summary = if is_error {
                         None
                     } else {
-                        content_str.map(|s| {
+                        content_str.as_deref().map(|s| {
                             s.char_indices()
                                 .take_while(|&(i, _)| i < 200)
                                 .map(|(_, c)| c)
@@ -193,7 +208,7 @@ impl ClaudeAdapter {
                     };
 
                     let error = if is_error {
-                        content_str.map(|s| s.to_string())
+                        content_str
                     } else {
                         None
                     };
@@ -215,12 +230,11 @@ impl ClaudeAdapter {
         events
     }
 
-    fn parse_timestamp(&self, line: &serde_json::Value) -> DateTime<Utc> {
+    fn parse_timestamp(&self, line: &serde_json::Value) -> Option<DateTime<Utc>> {
         line["timestamp"]
             .as_str()
             .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(Utc::now)
     }
 }
 
@@ -268,7 +282,10 @@ impl Adapter for ClaudeAdapter {
                 continue;
             }
 
-            let ts = self.parse_timestamp(&line);
+            let ts = match self.parse_timestamp(&line) {
+                Some(t) => t,
+                None => continue,
+            };
             if first_timestamp.is_none() {
                 first_timestamp = Some(ts);
             }
@@ -305,7 +322,7 @@ impl Adapter for ClaudeAdapter {
             events.push(self.make_event(
                 session_id, workspace, last_ts, Confidence::Inferred,
                 EventData::SessionEnd {
-                    exit_code: 0,
+                    exit_code: None,
                     duration_ms,
                 },
                 None,

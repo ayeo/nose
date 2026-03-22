@@ -329,7 +329,7 @@ impl Adapter for CodexAdapter {
                 last_ts,
                 Confidence::Inferred,
                 EventData::SessionEnd {
-                    exit_code: 0,
+                    exit_code: None,
                     duration_ms,
                 },
                 None,

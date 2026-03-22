@@ -42,7 +42,7 @@ pub enum EventData {
         config: serde_json::Value,
     },
     SessionEnd {
-        exit_code: i32,
+        exit_code: Option<i32>,
         duration_ms: u64,
     },
     ModelRequest {

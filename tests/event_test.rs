@@ -102,7 +102,7 @@ fn test_write_events_jsonl() {
             confidence: Confidence::Native,
             raw_payload: None,
             data: EventData::SessionEnd {
-                exit_code: 0,
+                exit_code: Some(0),
                 duration_ms: 1000,
             },
         },

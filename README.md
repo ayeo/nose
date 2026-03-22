@@ -1,8 +1,8 @@
-# Nose — Agent Activity Observability
+# Nose
 
-Unified abstraction layer for observing AI coding agent actions. Nose auto-discovers agent sessions on your machine, parses their logs, and emits a consistent JSONL event stream.
+Unified event format for AI coding agent actions. Nose auto-discovers agent sessions on your machine, parses their logs, and emits a consistent JSONL event stream.
 
-**Lang:** Rust · **Output:** JSONL
+**Lang:** Rust | **Output:** JSONL | **Platform:** macOS, Linux
 
 ## Installation
 
@@ -26,9 +26,9 @@ cd my-project/
 nose parse
 ```
 
-Nose scopes to the **current working directory** — it only parses sessions from the project you're in, not all projects on your machine.
+Nose scopes to the **current working directory**. It only parses sessions from the project you're in.
 
-Output goes to stdout as JSONL (one JSON event per line). Pipe it however you need:
+Output goes to stdout as JSONL (one JSON event per line):
 
 ```bash
 # Save to file
@@ -50,19 +50,19 @@ nose parse | jq 'select(.event_type == "CommandExec") | .command'
 nose parse | jq -r '.event_type' | sort | uniq -c | sort -rn
 ```
 
-Nose reads files only — it does not install hooks or run agents.
+Nose reads files only. It does not install hooks or run agents.
 
 ## Supported Agents
 
-| Agent | Data Sources (files read by Nose) |
+| Agent | Data Sources |
 |---|---|
-| Claude Code | JSONL transcripts (`~/.claude/projects/*/`) |
-| Codex CLI | JSON log files (`~/.codex/log/`) |
+| Claude Code | JSONL transcripts (`~/.claude/projects/`) |
+| Codex CLI | JSON log files (`~/.codex/sessions/`) |
 | Gemini CLI | Stream-JSON output (`~/.gemini/`) |
-| Cursor | Hook output files (`~/Library/Application Support/Cursor/`) |
-| GitHub Copilot | Hook output files (`~/.github-copilot/`) |
+| Cursor | Hook output files (planned) |
+| GitHub Copilot | Hook output files (planned) |
 
-## Unified Event Model
+## Event Model
 
 All events share common fields:
 
@@ -71,67 +71,42 @@ All events share common fields:
 | `event_id` | UUID | Unique event identifier |
 | `session_id` | string | Agent session identifier |
 | `timestamp` | ISO 8601 | When the event occurred |
-| `agent_type` | enum | `claude` \| `codex` \| `gemini` \| `cursor` \| `copilot` |
+| `agent_type` | enum | `claude`, `codex`, `gemini`, `cursor`, `copilot` |
 | `workspace` | string | Working directory path |
-| `confidence` | enum | `native` \| `inferred` |
+| `confidence` | enum | `native`, `inferred` |
 | `raw_payload` | object? | Original agent-specific payload (optional) |
 
 ## Event Types
 
-| # | Event | Description |
-|---|---|---|
-| 1 | **SessionStart** | Agent started a session |
-| 2 | **SessionEnd** | Agent ended a session |
-| 3 | **ModelRequest** | Prompt sent to LLM |
-| 4 | **ModelResponse** | Response received from LLM |
-| 5 | **ToolCall** | Agent invoked a tool |
-| 6 | **ToolResult** | Tool returned a result |
-| 7 | **FileRead** | File read operation |
-| 8 | **FileWrite** | File write/create operation |
-| 9 | **FileDelete** | File delete operation |
-| 10 | **CommandExec** | Shell command execution |
-| 11 | **SubagentStart** | Sub-agent spawned |
-| 12 | **SubagentEnd** | Sub-agent finished |
-| 13 | **NetworkCall** | HTTP/API call |
-| 14 | **McpCall** | MCP server call |
-| 15 | **Artifact** | Agent produced an artifact |
-| 16 | **Error** | Error in agent session |
-
-## Event Support Matrix
-
-✅ = natively available  ⚠️ = requires parsing/inference  ❌ = not available
-
-| Event | Claude Code | Codex CLI | Gemini CLI | Cursor | Copilot |
-|---|---|---|---|---|---|
-| **SessionStart** | ✅ hooks | ✅ hooks+json | ✅ hooks | ⚠️ | ✅ hooks |
-| **SessionEnd** | ✅ hooks | ✅ hooks+json | ✅ hooks | ⚠️ stop hook | ✅ hooks |
-| **ModelRequest** | ⚠️ transcript | ⚠️ json stream | ✅ BeforeModel | ❌ | ❌ |
-| **ModelResponse** | ⚠️ transcript | ⚠️ json stream | ✅ AfterModel | ❌ | ❌ |
-| **ToolCall** | ✅ PreToolUse | ⚠️ json stream | ✅ BeforeTool | ⚠️ | ✅ preToolUse |
-| **ToolResult** | ✅ PostToolUse | ⚠️ json stream | ✅ AfterTool | ⚠️ | ✅ postToolUse |
-| **FileRead** | ✅ via tools | ⚠️ via json | ✅ via tools | ✅ hook | ⚠️ via tools |
-| **FileWrite** | ✅ via tools | ⚠️ via json | ✅ via tools | ✅ hook | ⚠️ via tools |
-| **FileDelete** | ✅ via tools | ⚠️ via json | ✅ via tools | ⚠️ | ⚠️ via tools |
-| **CommandExec** | ✅ Bash tool | ⚠️ json stream | ✅ via tools | ✅ hook | ⚠️ via tools |
-| **SubagentStart** | ✅ hooks | ❌ | ✅ BeforeAgent | ❌ | ❌ |
-| **SubagentEnd** | ✅ hooks | ❌ | ✅ AfterAgent | ❌ | ❌ |
-| **NetworkCall** | ⚠️ WebFetch | ❌ | ⚠️ via tools | ❌ | ❌ |
-| **McpCall** | ✅ mcp__* | ❌ | ✅ via tools | ✅ hook | ❌ |
-| **Artifact** | ⚠️ file writes | ⚠️ output flag | ⚠️ result event | ❌ | ❌ |
-| **Error** | ✅ StopFailure | ⚠️ json stream | ✅ Notification | ⚠️ stop hook | ✅ errorOccurred |
+| Event | Description |
+|---|---|
+| SessionStart | Agent started a session |
+| SessionEnd | Agent ended a session |
+| ModelRequest | Prompt sent to LLM |
+| ModelResponse | Response received from LLM |
+| ToolCall | Agent invoked a tool |
+| ToolResult | Tool returned a result |
+| FileRead | File read operation |
+| FileWrite | File write/create operation |
+| FileDelete | File delete operation |
+| CommandExec | Shell command execution |
+| SubagentStart | Sub-agent spawned |
+| SubagentEnd | Sub-agent finished |
+| NetworkCall | HTTP/API call |
+| McpCall | MCP server call |
+| Artifact | Agent produced an artifact |
+| Error | Error in agent session |
 
 ## Architecture
 
 ```
-Known agent paths ──→ Discovery ──→ Session files
-                                        │
-                              Format detection
-                                        │
-                              Adapter selection
-                                        │
-Claude adapter ───┐
-Codex adapter ────┤
-Gemini adapter ───┤──→ Unified Events ──→ JSONL (stdout)
-Cursor adapter ───┤
-Copilot adapter ──┘
+cwd -> Adapter.discovery_paths() -> known agent paths
+                                        |
+                                    walkdir scan
+                                        |
+                                  adapter.detect()
+                                        |
+Claude adapter --\
+Codex adapter  ---+-- adapter.parse() -- Unified Events -- JSONL (stdout)
+Gemini adapter --/
 ```
