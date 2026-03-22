@@ -1,0 +1,6 @@
+{"type":"message","role":"user","content":"list files and read main.rs","timestamp":"2026-03-22T10:00:00Z"}
+{"type":"function_call","name":"shell","arguments":"{\"command\":\"ls\",\"workdir\":\"/project\"}","timestamp":"2026-03-22T10:00:01Z"}
+{"type":"function_call_output","output":"main.rs\nlib.rs\nCargo.toml","is_error":false,"timestamp":"2026-03-22T10:00:02Z"}
+{"type":"function_call","name":"read","arguments":"{\"path\":\"/project/main.rs\"}","timestamp":"2026-03-22T10:00:03Z"}
+{"type":"function_call_output","output":"fn main() {}\n","is_error":false,"timestamp":"2026-03-22T10:00:04Z"}
+{"type":"message","role":"assistant","content":[{"type":"text","text":"I found main.rs and it contains a simple main function."}],"model":"o4-mini","usage":{"input_tokens":200,"output_tokens":80},"timestamp":"2026-03-22T10:00:05Z"}
