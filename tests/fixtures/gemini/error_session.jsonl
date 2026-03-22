@@ -1,0 +1,6 @@
+{"type":"model_request","timestamp":"2026-03-22T10:00:00Z","model":"gemini-2.0-flash","usage":{"input_tokens":150}}
+{"type":"tool_use","timestamp":"2026-03-22T10:00:01Z","name":"read_file","input":{"path":"/nonexistent.rs"}}
+{"type":"tool_result","timestamp":"2026-03-22T10:00:02Z","error":"File not found: /nonexistent.rs","is_error":true}
+{"type":"tool_use","timestamp":"2026-03-22T10:00:03Z","name":"write_file","input":{"path":"/output.txt","content":"Hello from Gemini"}}
+{"type":"tool_result","timestamp":"2026-03-22T10:00:04Z","output":"File written successfully"}
+{"type":"result","timestamp":"2026-03-22T10:00:05Z","text":"I encountered an error but recovered.","model":"gemini-2.0-flash","usage":{"input_tokens":150,"output_tokens":60}}

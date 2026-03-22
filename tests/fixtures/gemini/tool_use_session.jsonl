@@ -1,0 +1,6 @@
+{"type":"model_request","timestamp":"2026-03-22T10:00:00Z","model":"gemini-2.0-flash","usage":{"input_tokens":200}}
+{"type":"tool_use","timestamp":"2026-03-22T10:00:01Z","name":"read_file","input":{"path":"/src/main.rs"}}
+{"type":"tool_result","timestamp":"2026-03-22T10:00:02Z","output":"fn main() {}","duration_ms":50}
+{"type":"tool_use","timestamp":"2026-03-22T10:00:03Z","name":"run_shell_command","input":{"command":"cargo test","cwd":"/project"}}
+{"type":"tool_result","timestamp":"2026-03-22T10:00:05Z","output":"test result: ok. 3 passed","duration_ms":2000}
+{"type":"result","timestamp":"2026-03-22T10:00:06Z","text":"Done! Tests pass.","model":"gemini-2.0-flash","usage":{"input_tokens":200,"output_tokens":80}}

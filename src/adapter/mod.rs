@@ -1,4 +1,6 @@
 pub mod claude;
+pub mod codex;
+pub mod gemini;
 
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -16,5 +18,7 @@ pub trait Adapter {
 pub fn all_adapters() -> Vec<Box<dyn Adapter>> {
     vec![
         Box::new(claude::ClaudeAdapter),
+        Box::new(codex::CodexAdapter),
+        Box::new(gemini::GeminiAdapter),
     ]
 }

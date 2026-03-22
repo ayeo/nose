@@ -1,0 +1,2 @@
+{"type":"model_request","timestamp":"2026-03-22T10:00:00Z","model":"gemini-2.0-flash","usage":{"input_tokens":100}}
+{"type":"result","timestamp":"2026-03-22T10:00:01Z","text":"Hello! How can I help you?","model":"gemini-2.0-flash","usage":{"input_tokens":100,"output_tokens":50}}
