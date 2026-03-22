@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use chrono::{DateTime, Utc};
@@ -22,7 +23,7 @@ impl ClaudeAdapter {
         }
     }
 
-    fn parse_assistant_message(&self, line: &serde_json::Value, session_id: &str, workspace: &str) -> Vec<Event> {
+    fn parse_assistant_message(&self, line: &serde_json::Value, session_id: &str, workspace: &str, tool_id_to_name: &mut HashMap<String, String>) -> Vec<Event> {
         let mut events = Vec::new();
         let msg = &line["message"];
         let timestamp = self.parse_timestamp(line);
@@ -46,6 +47,11 @@ impl ClaudeAdapter {
                 if let Some("tool_use") = block["type"].as_str() {
                     let tool_name = block["name"].as_str().unwrap_or("unknown").to_string();
                     let input = block["input"].clone();
+
+                    // Record tool_use_id → tool_name mapping for later ToolResult lookup
+                    if let Some(tool_id) = block["id"].as_str() {
+                        tool_id_to_name.insert(tool_id.to_string(), tool_name.clone());
+                    }
 
                     events.push(self.make_event(
                         session_id, workspace, timestamp, Confidence::Native,
@@ -161,6 +167,52 @@ impl ClaudeAdapter {
         events
     }
 
+    fn parse_user_message(&self, line: &serde_json::Value, session_id: &str, workspace: &str, tool_id_to_name: &HashMap<String, String>) -> Vec<Event> {
+        let mut events = Vec::new();
+        let msg = &line["message"];
+        let timestamp = self.parse_timestamp(line);
+
+        if let Some(content) = msg["content"].as_array() {
+            for block in content {
+                if let Some("tool_result") = block["type"].as_str() {
+                    let tool_use_id = block["tool_use_id"].as_str().unwrap_or("");
+                    let tool_name = tool_id_to_name.get(tool_use_id).cloned().unwrap_or_else(|| "unknown".to_string());
+                    let is_error = block["is_error"].as_bool().unwrap_or(false);
+
+                    let content_str = block["content"].as_str();
+
+                    let output_summary = if is_error {
+                        None
+                    } else {
+                        content_str.map(|s| {
+                            let truncated = &s[..s.len().min(200)];
+                            truncated.to_string()
+                        })
+                    };
+
+                    let error = if is_error {
+                        content_str.map(|s| s.to_string())
+                    } else {
+                        None
+                    };
+
+                    events.push(self.make_event(
+                        session_id, workspace, timestamp, Confidence::Native,
+                        EventData::ToolResult {
+                            tool_name,
+                            output_summary,
+                            error,
+                            duration_ms: None,
+                        },
+                        None,
+                    ));
+                }
+            }
+        }
+
+        events
+    }
+
     fn parse_timestamp(&self, line: &serde_json::Value) -> DateTime<Utc> {
         line["timestamp"]
             .as_str()
@@ -191,6 +243,10 @@ impl Adapter for ClaudeAdapter {
     fn parse(&self, reader: &mut dyn Read, session_id: &str, workspace: &str) -> Result<Vec<Event>, AdapterError> {
         let buf_reader = BufReader::new(reader);
         let mut events = Vec::new();
+        let mut tool_id_to_name: HashMap<String, String> = HashMap::new();
+        let mut first_timestamp: Option<DateTime<Utc>> = None;
+        let mut last_timestamp: Option<DateTime<Utc>> = None;
+        let mut session_start_emitted = false;
 
         for line_result in buf_reader.lines() {
             let line_str = line_result?;
@@ -203,10 +259,53 @@ impl Adapter for ClaudeAdapter {
                 Err(_) => continue,
             };
 
-            // user, progress, file-history-snapshot, system — skip for v1
-            if let Some("assistant") = line["type"].as_str() {
-                events.extend(self.parse_assistant_message(&line, session_id, workspace));
+            let line_type = line["type"].as_str();
+            if !matches!(line_type, Some("user") | Some("assistant")) {
+                continue;
             }
+
+            let ts = self.parse_timestamp(&line);
+            if first_timestamp.is_none() {
+                first_timestamp = Some(ts);
+            }
+            last_timestamp = Some(ts);
+
+            // Emit SessionStart from the first user or assistant line
+            if !session_start_emitted {
+                session_start_emitted = true;
+                events.push(self.make_event(
+                    session_id, workspace, ts, Confidence::Inferred,
+                    EventData::SessionStart {
+                        environment: None,
+                        args: vec![],
+                        config: serde_json::Value::Null,
+                    },
+                    None,
+                ));
+            }
+
+            match line_type {
+                Some("assistant") => {
+                    events.extend(self.parse_assistant_message(&line, session_id, workspace, &mut tool_id_to_name));
+                }
+                Some("user") => {
+                    events.extend(self.parse_user_message(&line, session_id, workspace, &tool_id_to_name));
+                }
+                _ => {}
+            }
+        }
+
+        // Emit SessionEnd after processing all lines
+        if let (Some(first_ts), Some(last_ts)) = (first_timestamp, last_timestamp) {
+            let duration_ms = (last_ts - first_ts).num_milliseconds().max(0) as u64;
+            events.push(self.make_event(
+                session_id, workspace, last_ts, Confidence::Inferred,
+                EventData::SessionEnd {
+                    exit_code: 0,
+                    duration_ms,
+                },
+                None,
+            ));
         }
 
         Ok(events)

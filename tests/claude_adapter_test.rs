@@ -57,3 +57,28 @@ fn test_claude_discovery_paths() {
     assert!(!paths.is_empty());
     assert!(paths[0].to_string_lossy().contains(".claude"));
 }
+
+#[test]
+fn test_claude_parse_emits_tool_result() {
+    let fixture = include_str!("fixtures/claude/tool_use_session.jsonl");
+    let adapter = ClaudeAdapter;
+    let mut reader = std::io::Cursor::new(fixture.as_bytes());
+    let events = adapter.parse(&mut reader, "sess_02", "/project").unwrap();
+
+    let tool_results: Vec<_> = events.iter().filter(|e| matches!(&e.data, EventData::ToolResult { .. })).collect();
+    assert!(!tool_results.is_empty(), "Expected at least 1 ToolResult event");
+}
+
+#[test]
+fn test_claude_parse_emits_session_lifecycle() {
+    let fixture = include_str!("fixtures/claude/simple_session.jsonl");
+    let adapter = ClaudeAdapter;
+    let mut reader = std::io::Cursor::new(fixture.as_bytes());
+    let events = adapter.parse(&mut reader, "sess_01", "/project").unwrap();
+
+    let starts: Vec<_> = events.iter().filter(|e| matches!(&e.data, EventData::SessionStart { .. })).collect();
+    assert_eq!(starts.len(), 1, "Expected 1 SessionStart event");
+
+    let ends: Vec<_> = events.iter().filter(|e| matches!(&e.data, EventData::SessionEnd { .. })).collect();
+    assert_eq!(ends.len(), 1, "Expected 1 SessionEnd event");
+}

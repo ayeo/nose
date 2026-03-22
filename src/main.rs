@@ -43,7 +43,7 @@ fn run_parse() {
                 }
             };
 
-            let mut reader = std::io::BufReader::new(file);
+            let mut reader = file;
             match adapter.parse(&mut reader, &session.session_id, &session.workspace) {
                 Ok(events) => {
                     if let Err(e) = write_events_jsonl(&events, &mut out) {
