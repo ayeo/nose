@@ -229,9 +229,11 @@ impl Adapter for ClaudeAdapter {
         "claude"
     }
 
-    fn discovery_paths(&self) -> Vec<PathBuf> {
+    fn discovery_paths(&self, cwd: &Path) -> Vec<PathBuf> {
         if let Some(home) = std::env::var_os("HOME").map(PathBuf::from) {
-            vec![home.join(".claude").join("projects")]
+            // Claude Code encodes cwd as directory name: /Users/foo/bar → -Users-foo-bar
+            let encoded = cwd.to_string_lossy().replace('/', "-");
+            vec![home.join(".claude").join("projects").join(encoded)]
         } else {
             vec![]
         }

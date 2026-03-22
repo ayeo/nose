@@ -4,9 +4,17 @@ use tempfile::tempdir;
 
 #[test]
 fn test_nose_parse_with_claude_fixture() {
+    // Use a directory under the real home to avoid macOS /var → /private/var symlink issues
     let dir = tempdir().unwrap();
-    let home = dir.path();
-    let claude_dir = home.join(".claude").join("projects").join("test-project");
+    let home = dir.path().canonicalize().unwrap();
+
+    // Create a fake project directory
+    let project_dir = home.join("workspace").join("myproject");
+    fs::create_dir_all(&project_dir).unwrap();
+
+    // Claude Code encodes cwd: /path/to/project → -path-to-project
+    let encoded = project_dir.to_string_lossy().replace('/', "-");
+    let claude_dir = home.join(".claude").join("projects").join(&encoded);
     fs::create_dir_all(&claude_dir).unwrap();
 
     let fixture = include_str!("fixtures/claude/tool_use_session.jsonl");
@@ -14,7 +22,8 @@ fn test_nose_parse_with_claude_fixture() {
 
     let output = Command::new(env!("CARGO_BIN_EXE_nose"))
         .arg("parse")
-        .env("HOME", home)
+        .env("HOME", &home)
+        .current_dir(&project_dir)
         .output()
         .expect("Failed to run nose");
 
@@ -47,10 +56,12 @@ fn test_nose_parse_with_claude_fixture() {
 #[test]
 fn test_nose_parse_empty_home() {
     let dir = tempdir().unwrap();
+    let home = dir.path().canonicalize().unwrap();
 
     let output = Command::new(env!("CARGO_BIN_EXE_nose"))
         .arg("parse")
-        .env("HOME", dir.path())
+        .env("HOME", &home)
+        .current_dir(&home)
         .output()
         .expect("Failed to run nose");
 

@@ -27,11 +27,12 @@ fn main() {
 }
 
 fn run_parse() {
+    let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
     let adapters = all_adapters();
     let mut out = stdout().lock();
 
     for adapter in &adapters {
-        let search_paths = adapter.discovery_paths();
+        let search_paths = adapter.discovery_paths(&cwd);
         let sessions = discover_sessions(&search_paths, adapter.as_ref());
 
         for session in sessions {

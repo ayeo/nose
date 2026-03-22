@@ -53,9 +53,11 @@ fn test_claude_detect() {
 #[test]
 fn test_claude_discovery_paths() {
     let adapter = ClaudeAdapter;
-    let paths = adapter.discovery_paths();
+    let cwd = std::path::Path::new("/Users/test/workspace/myproject");
+    let paths = adapter.discovery_paths(cwd);
     assert!(!paths.is_empty());
     assert!(paths[0].to_string_lossy().contains(".claude"));
+    assert!(paths[0].to_string_lossy().contains("-Users-test-workspace-myproject"));
 }
 
 #[test]
