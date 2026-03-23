@@ -8,6 +8,7 @@ use nose::event::Event;
 use nose::hooks::handler::run_hook_handler;
 use nose::hooks::install::run_install;
 use nose::hooks::uninstall::run_uninstall;
+use nose::offset::{load_offsets, parse_file_from_offset, save_offsets};
 use nose::output::write_events_jsonl;
 use nose::stats::Stats;
 use nose::watch::run_watch;
@@ -22,7 +23,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Parse agent sessions and emit unified JSONL events
-    Parse,
+    Parse {
+        /// Only emit events not yet seen (uses ~/.nose/offsets.json as bookmark)
+        #[arg(long)]
+        new: bool,
+    },
     /// Show a statistics summary of agent activity in the current directory
     Stats,
     /// Stream events in real-time, watching for new agent activity
@@ -52,7 +57,7 @@ enum HookAction {
 fn main() {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Parse => run_parse(),
+        Commands::Parse { new } => run_parse(new),
         Commands::Stats => run_stats(),
         Commands::Watch => run_watch(),
         Commands::Hooks { action } => match action {
@@ -103,13 +108,57 @@ where
     }
 }
 
-fn run_parse() {
+fn run_parse(incremental: bool) {
     let mut out = stdout().lock();
-    for_each_session_events(|events| {
-        if let Err(e) = write_events_jsonl(events, &mut out) {
-            eprintln!("nose: warning: write error: {}", e);
+
+    if !incremental {
+        for_each_session_events(|events| {
+            if let Err(e) = write_events_jsonl(events, &mut out) {
+                eprintln!("nose: warning: write error: {}", e);
+            }
+        });
+        return;
+    }
+
+    // Incremental mode: only emit events since last bookmark.
+    let mut offsets = load_offsets();
+    let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let adapters = all_adapters();
+
+    for adapter in &adapters {
+        let search_paths = adapter.discovery_paths(&cwd);
+        let sessions = discover_sessions(&search_paths, adapter.as_ref());
+
+        for session in sessions {
+            let offset = *offsets.get(&session.path).unwrap_or(&0);
+
+            match parse_file_from_offset(
+                &session.path,
+                offset,
+                adapter.as_ref(),
+                &session.session_id,
+                &session.workspace,
+            ) {
+                Ok((events, new_pos)) => {
+                    if !events.is_empty() {
+                        if let Err(e) = write_events_jsonl(&events, &mut out) {
+                            eprintln!("nose: warning: write error: {}", e);
+                        }
+                    }
+                    offsets.insert(session.path.clone(), new_pos);
+                }
+                Err(e) => {
+                    eprintln!(
+                        "nose: warning: failed to parse {}: {}",
+                        session.path.display(),
+                        e
+                    );
+                }
+            }
         }
-    });
+    }
+
+    save_offsets(&offsets);
 }
 
 fn run_stats() {

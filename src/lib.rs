@@ -6,3 +6,4 @@ pub mod discovery;
 pub mod hooks;
 pub mod stats;
 pub mod watch;
+pub mod offset;
