@@ -75,8 +75,8 @@ Hooks are non-destructive - they append to existing agent hook configs and only 
 | Claude Code | JSONL transcripts | PreToolUse, PostToolUse, SessionStart, SessionEnd |
 | Codex CLI | JSON log files | SessionStart, SessionStop |
 | Gemini CLI | Stream-JSON output | BeforeTool, AfterTool, SessionStart, SessionEnd |
-| Cursor | planned | planned |
-| GitHub Copilot | planned | planned |
+| Cursor | Hook output files | planned |
+| GitHub Copilot | Hook output files | planned |
 
 ## Event Model
 
@@ -158,14 +158,34 @@ What events `nose hooks install` captures in real-time from each agent.
 
 ## Architecture
 
+### Log parsing (`nose parse`)
+
+```mermaid
+graph LR
+    CWD[cwd] --> D[Discovery]
+    D --> C[Claude ~/.claude/projects/]
+    D --> X[Codex ~/.codex/sessions/]
+    D --> G[Gemini ~/.gemini/projects/]
+    D --> R[Cursor ~/Library/.../Cursor/]
+    D --> P[Copilot ~/.github-copilot/]
+    D --> H[Hooks ~/.nose/events/]
+    C --> A[adapter.parse]
+    X --> A
+    G --> A
+    R --> A
+    P --> A
+    H --> A
+    A --> E[Unified Events]
+    E --> J[JSONL stdout]
 ```
-cwd -> Adapter.discovery_paths() -> known agent paths
-                                        |
-                                    walkdir scan
-                                        |
-                                  adapter.detect()
-                                        |
-Claude adapter --\
-Codex adapter  ---+-- adapter.parse() -- Unified Events -- JSONL (stdout)
-Gemini adapter --/
+
+### Real-time hooks (`nose hooks install`)
+
+```mermaid
+graph LR
+    AG[Agent runs] --> HK[Agent hook fires]
+    HK --> NH["nose hook-handler --agent X --event Y"]
+    NH --> T[Transform to unified Event]
+    T --> F["~/.nose/events/{agent}_{session}.jsonl"]
+    F --> NP["nose parse (reads hook events)"]
 ```
