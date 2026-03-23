@@ -4,6 +4,9 @@ use std::io::stdout;
 
 use nose::adapter::all_adapters;
 use nose::discovery::discover_sessions;
+use nose::hooks::handler::run_hook_handler;
+use nose::hooks::install::run_install;
+use nose::hooks::uninstall::run_uninstall;
 use nose::output::write_events_jsonl;
 
 #[derive(Parser)]
@@ -17,12 +20,37 @@ struct Cli {
 enum Commands {
     /// Parse agent sessions and emit unified JSONL events
     Parse,
+    /// Manage agent hook configuration
+    Hooks {
+        #[command(subcommand)]
+        action: HookAction,
+    },
+    /// Handle an agent hook event (called by agents, reads JSON from stdin)
+    HookHandler {
+        #[arg(long)]
+        agent: String,
+        #[arg(long)]
+        event: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum HookAction {
+    /// Install nose hooks into all detected agents
+    Install,
+    /// Remove nose hooks from all detected agents
+    Uninstall,
 }
 
 fn main() {
     let cli = Cli::parse();
     match cli.command {
         Commands::Parse => run_parse(),
+        Commands::Hooks { action } => match action {
+            HookAction::Install => run_install(),
+            HookAction::Uninstall => run_uninstall(),
+        },
+        Commands::HookHandler { agent, event } => run_hook_handler(&agent, &event),
     }
 }
 

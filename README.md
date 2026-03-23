@@ -50,17 +50,33 @@ nose parse | jq 'select(.event_type == "CommandExec") | .command'
 nose parse | jq -r '.event_type' | sort | uniq -c | sort -rn
 ```
 
-Nose reads files only. It does not install hooks or run agents.
+### Hooks (real-time capture)
+
+Install hooks into all detected agents:
+
+```bash
+nose hooks install
+```
+
+This configures Claude Code, Codex CLI, and Gemini CLI to emit events in real-time to `~/.nose/events/`. Events are captured as they happen, with `confidence: native`.
+
+Remove hooks:
+
+```bash
+nose hooks uninstall
+```
+
+Hooks are non-destructive - they append to existing agent hook configs and only remove nose-managed entries on uninstall.
 
 ## Supported Agents
 
-| Agent | Data Sources |
-|---|---|
-| Claude Code | JSONL transcripts (`~/.claude/projects/`) |
-| Codex CLI | JSON log files (`~/.codex/sessions/`) |
-| Gemini CLI | Stream-JSON output (`~/.gemini/`) |
-| Cursor | Hook output files (planned) |
-| GitHub Copilot | Hook output files (planned) |
+| Agent | Log parsing | Real-time hooks |
+|---|---|---|
+| Claude Code | JSONL transcripts | PreToolUse, PostToolUse, SessionStart, SessionEnd |
+| Codex CLI | JSON log files | SessionStart, SessionStop |
+| Gemini CLI | Stream-JSON output | BeforeTool, AfterTool, SessionStart, SessionEnd |
+| Cursor | planned | planned |
+| GitHub Copilot | planned | planned |
 
 ## Event Model
 
