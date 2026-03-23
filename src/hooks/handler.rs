@@ -41,6 +41,8 @@ pub fn run_hook_handler(agent: &str, event: &str) {
         "claude" => AgentType::Claude,
         "codex" => AgentType::Codex,
         "gemini" => AgentType::Gemini,
+        "cursor" => AgentType::Cursor,
+        "copilot" => AgentType::Copilot,
         _ => {
             print!("{{}}");
             return;
@@ -103,12 +105,53 @@ fn transform_payload(
                 duration_ms: None,
             })
         }
-        (_, "SessionStart") => Some(EventData::SessionStart {
+        // Cursor hooks
+        (AgentType::Cursor, "beforeShellExecution") => {
+            let command = payload.get("command").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            let cwd = payload.get("cwd").and_then(|v| v.as_str()).map(|s| s.to_string());
+            Some(EventData::CommandExec { command, cwd, exit_code: None, duration_ms: None })
+        }
+        (AgentType::Cursor, "afterFileEdit") => {
+            let path = payload.get("file_path").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            Some(EventData::FileWrite { path, bytes_written: None })
+        }
+        (AgentType::Cursor, "beforeReadFile") => {
+            let path = payload.get("file_path").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            Some(EventData::FileRead { path })
+        }
+        (AgentType::Cursor, "beforeMCPExecution") => {
+            let server_name = payload.get("server_name").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+            let method = payload.get("tool_name").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+            let params = payload.get("tool_input").cloned();
+            Some(EventData::McpCall { server_name, method, params })
+        }
+        (AgentType::Cursor, "stop") => Some(EventData::SessionEnd {
+            exit_code: None,
+            duration_ms: 0,
+        }),
+        // Copilot hooks
+        (AgentType::Copilot, "preToolUse") => {
+            let tool_name = payload.get("toolName").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+            let input = payload.get("toolArgs").cloned().unwrap_or(Value::Null);
+            Some(EventData::ToolCall { tool_name, input })
+        }
+        (AgentType::Copilot, "postToolUse") => {
+            let tool_name = payload.get("toolName").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+            let output_summary = payload.get("toolResult").and_then(|v| v.as_str()).map(|s| s.to_string());
+            Some(EventData::ToolResult { tool_name, output_summary, error: None, duration_ms: None })
+        }
+        (AgentType::Copilot, "errorOccurred") => {
+            let error_type = payload.get("error").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+            let message = payload.get("message").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            Some(EventData::Error { error_type, message, context: None })
+        }
+        // Generic session lifecycle (all agents)
+        (_, "SessionStart") | (_, "sessionStart") => Some(EventData::SessionStart {
             environment: None,
             args: Vec::new(),
             config: Value::Null,
         }),
-        (_, "SessionEnd") | (AgentType::Codex, "SessionStop") => Some(EventData::SessionEnd {
+        (_, "SessionEnd") | (_, "sessionEnd") | (AgentType::Codex, "SessionStop") => Some(EventData::SessionEnd {
             exit_code: None,
             duration_ms: 0,
         }),

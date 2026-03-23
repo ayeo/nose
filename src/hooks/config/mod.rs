@@ -1,5 +1,7 @@
 pub mod claude;
 pub mod codex;
+pub mod copilot;
+pub mod cursor;
 pub mod gemini;
 
 use std::path::PathBuf;
@@ -32,5 +34,7 @@ pub fn all_agents() -> Vec<Box<dyn AgentConfig>> {
         Box::new(claude::ClaudeConfig),
         Box::new(codex::CodexConfig),
         Box::new(gemini::GeminiConfig),
+        Box::new(cursor::CursorConfig),
+        Box::new(copilot::CopilotConfig),
     ]
 }

@@ -146,15 +146,16 @@ What events `nose hooks install` captures in real-time from each agent.
 
 | Event | Claude Code | Codex CLI | Gemini CLI | Cursor | Copilot |
 |---|---|---|---|---|---|
-| SessionStart | ✅ | ✅ | ✅ | ❌ | ❌ |
-| SessionEnd | ✅ | ✅ | ✅ | ❌ | ❌ |
-| ToolCall | ✅ | ❌ | ✅ | ❌ | ❌ |
-| ToolResult | ✅ | ❌ | ✅ | ❌ | ❌ |
-| FileRead | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
-| FileWrite | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
-| CommandExec | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
-| McpCall | ⚠️ | ❌ | ❌ | ❌ | ❌ |
+| SessionStart | ✅ | ✅ | ✅ | ❌ | ✅ |
+| SessionEnd | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ToolCall | ✅ | ❌ | ✅ | ❌ | ✅ |
+| ToolResult | ✅ | ❌ | ✅ | ❌ | ✅ |
+| FileRead | ⚠️ | ❌ | ⚠️ | ✅ | ⚠️ |
+| FileWrite | ⚠️ | ❌ | ⚠️ | ✅ | ⚠️ |
+| CommandExec | ⚠️ | ❌ | ⚠️ | ✅ | ⚠️ |
+| McpCall | ⚠️ | ❌ | ❌ | ✅ | ❌ |
 | SubagentStart | ⚠️ | ❌ | ❌ | ❌ | ❌ |
+| Error | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ## Architecture
 

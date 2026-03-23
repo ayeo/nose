@@ -43,9 +43,9 @@ mod tests {
     use crate::hooks::config::all_agents;
 
     #[test]
-    fn test_all_agents_returns_three() {
+    fn test_all_agents_returns_five() {
         let agents = all_agents();
-        assert_eq!(agents.len(), 3);
+        assert_eq!(agents.len(), 5);
     }
 
     #[test]
@@ -55,5 +55,7 @@ mod tests {
         assert!(names.contains(&"Claude Code"));
         assert!(names.contains(&"Codex CLI"));
         assert!(names.contains(&"Gemini CLI"));
+        assert!(names.contains(&"Cursor"));
+        assert!(names.contains(&"GitHub Copilot"));
     }
 }
