@@ -31,8 +31,11 @@ Nose scopes to the **current working directory**. It only parses sessions from t
 Output goes to stdout as JSONL (one JSON event per line):
 
 ```bash
-# Save to file
+# All events
 nose parse > events.jsonl
+
+# Only new events since last run (uses ~/.nose/offsets.json bookmark)
+nose parse --new
 
 # Count events
 nose parse | wc -l
