@@ -10,6 +10,7 @@ use nose::hooks::install::run_install;
 use nose::hooks::uninstall::run_uninstall;
 use nose::output::write_events_jsonl;
 use nose::stats::Stats;
+use nose::watch::run_watch;
 
 #[derive(Parser)]
 #[command(name = "nose", about = "Agent Activity Observability")]
@@ -24,6 +25,8 @@ enum Commands {
     Parse,
     /// Show a statistics summary of agent activity in the current directory
     Stats,
+    /// Stream events in real-time, watching for new agent activity
+    Watch,
     /// Manage agent hook configuration
     Hooks {
         #[command(subcommand)]
@@ -51,6 +54,7 @@ fn main() {
     match cli.command {
         Commands::Parse => run_parse(),
         Commands::Stats => run_stats(),
+        Commands::Watch => run_watch(),
         Commands::Hooks { action } => match action {
             HookAction::Install => run_install(),
             HookAction::Uninstall => run_uninstall(),
