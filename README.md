@@ -117,7 +117,7 @@ All events share common fields:
 
 What events `nose parse` can extract from each agent's native log files.
 
-✅ direct  ⚠️ derived from other data  ❌ not supported
+✅ direct  ⚠️ derived from other data  ❌ agent doesn't expose this  🔲 planned
 
 | Event | Claude Code | Codex CLI | Gemini CLI | Cursor | Copilot |
 |---|---|---|---|---|---|
@@ -142,7 +142,7 @@ What events `nose parse` can extract from each agent's native log files.
 
 What events `nose hooks install` captures in real-time from each agent.
 
-✅ direct  ⚠️ derived from other hook events  ❌ not supported
+✅ direct  ⚠️ derived from other hook events  ❌ agent doesn't expose this  🔲 planned
 
 | Event | Claude Code | Codex CLI | Gemini CLI | Cursor | Copilot |
 |---|---|---|---|---|---|
