@@ -1,0 +1,4 @@
+{"type":"beforeReadFile","file_path":"/project/src/main.rs","content":"fn main() {}","timestamp":"2026-03-22T10:00:00Z"}
+{"type":"afterFileEdit","file_path":"/project/src/main.rs","edits":[{"old_string":"fn main() {}","new_string":"fn main() { println!(\"hello\"); }"}],"timestamp":"2026-03-22T10:00:01Z"}
+{"type":"beforeShellExecution","command":"cargo test","cwd":"/project","timestamp":"2026-03-22T10:00:02Z"}
+{"type":"stop","status":"completed","timestamp":"2026-03-22T10:00:05Z"}

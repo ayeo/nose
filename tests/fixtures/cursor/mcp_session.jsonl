@@ -1,0 +1,3 @@
+{"type":"beforeMCPExecution","server_name":"github","tool_name":"list_issues","tool_input":{"repo":"owner/repo","state":"open"},"timestamp":"2026-03-22T10:00:00Z"}
+{"type":"beforeMCPExecution","server_name":"filesystem","tool_name":"read_file","tool_input":{"path":"/project/README.md"},"timestamp":"2026-03-22T10:00:01Z"}
+{"type":"stop","status":"completed","timestamp":"2026-03-22T10:00:03Z"}

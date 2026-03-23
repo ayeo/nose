@@ -1,0 +1,2 @@
+{"type":"beforeShellExecution","command":"cargo build","cwd":"/project","timestamp":"2026-03-22T10:00:00Z"}
+{"type":"stop","status":"completed","timestamp":"2026-03-22T10:00:02Z"}

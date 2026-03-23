@@ -1,0 +1,2 @@
+{"type":"beforeReadFile","file_path":"/project/Cargo.toml","content":"[package]\nname = \"test\"","timestamp":"2026-03-22T10:00:00Z"}
+{"type":"afterFileEdit","file_path":"/project/src/lib.rs","edits":[{"old_string":"","new_string":"pub fn hello() {}"}],"timestamp":"2026-03-22T10:00:02Z"}
