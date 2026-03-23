@@ -1,0 +1,6 @@
+{"event":"sessionStart","sessionId":"sess_02","timestamp":"2026-03-23T10:00:00Z","source":"copilot","initialPrompt":"run tests"}
+{"event":"preToolUse","sessionId":"sess_02","timestamp":"2026-03-23T10:00:01Z","toolName":"read","toolArgs":{"file":"src/main.rs"}}
+{"event":"postToolUse","sessionId":"sess_02","timestamp":"2026-03-23T10:00:02Z","toolName":"read","toolResult":"file content here"}
+{"event":"preToolUse","sessionId":"sess_02","timestamp":"2026-03-23T10:00:03Z","toolName":"bash","toolArgs":{"command":"cargo test"}}
+{"event":"postToolUse","sessionId":"sess_02","timestamp":"2026-03-23T10:00:10Z","toolName":"bash","toolResult":"test result output"}
+{"event":"sessionEnd","sessionId":"sess_02","timestamp":"2026-03-23T10:00:11Z","reason":"complete"}

@@ -1,0 +1,4 @@
+{"event":"sessionStart","sessionId":"sess_03","timestamp":"2026-03-23T10:00:00Z","source":"copilot","initialPrompt":"create a new file"}
+{"event":"preToolUse","sessionId":"sess_03","timestamp":"2026-03-23T10:00:01Z","toolName":"edit","toolArgs":{"file":"/project/hello.txt","content":"Hello, world!"}}
+{"event":"postToolUse","sessionId":"sess_03","timestamp":"2026-03-23T10:00:02Z","toolName":"edit","toolResult":"success"}
+{"event":"sessionEnd","sessionId":"sess_03","timestamp":"2026-03-23T10:00:05Z","reason":"complete"}

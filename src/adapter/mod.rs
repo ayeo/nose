@@ -1,5 +1,7 @@
 pub mod claude;
 pub mod codex;
+pub mod copilot;
+pub mod cursor;
 pub mod gemini;
 pub mod hook;
 
@@ -20,6 +22,8 @@ pub fn all_adapters() -> Vec<Box<dyn Adapter>> {
     vec![
         Box::new(claude::ClaudeAdapter),
         Box::new(codex::CodexAdapter),
+        Box::new(copilot::CopilotAdapter),
+        Box::new(cursor::CursorAdapter),
         Box::new(gemini::GeminiAdapter),
         Box::new(hook::HookAdapter),
     ]

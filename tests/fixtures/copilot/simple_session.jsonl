@@ -1,0 +1,2 @@
+{"event":"sessionStart","sessionId":"sess_01","timestamp":"2026-03-23T10:00:00Z","source":"copilot","initialPrompt":"fix the bug in main.rs"}
+{"event":"sessionEnd","sessionId":"sess_01","timestamp":"2026-03-23T10:00:30Z","reason":"complete"}

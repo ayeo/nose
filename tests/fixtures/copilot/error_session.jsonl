@@ -1,0 +1,4 @@
+{"event":"sessionStart","sessionId":"sess_04","timestamp":"2026-03-23T10:00:00Z","source":"copilot","initialPrompt":"do something risky"}
+{"event":"preToolUse","sessionId":"sess_04","timestamp":"2026-03-23T10:00:01Z","toolName":"bash","toolArgs":{"command":"rm -rf /tmp/test"}}
+{"event":"errorOccurred","sessionId":"sess_04","timestamp":"2026-03-23T10:00:02Z","error":"timeout","message":"Request timed out"}
+{"event":"sessionEnd","sessionId":"sess_04","timestamp":"2026-03-23T10:00:03Z","reason":"error"}
