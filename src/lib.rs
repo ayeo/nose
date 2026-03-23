@@ -4,3 +4,4 @@ pub mod output;
 pub mod adapter;
 pub mod discovery;
 pub mod hooks;
+pub mod stats;

@@ -4,10 +4,12 @@ use std::io::stdout;
 
 use nose::adapter::all_adapters;
 use nose::discovery::discover_sessions;
+use nose::event::Event;
 use nose::hooks::handler::run_hook_handler;
 use nose::hooks::install::run_install;
 use nose::hooks::uninstall::run_uninstall;
 use nose::output::write_events_jsonl;
+use nose::stats::Stats;
 
 #[derive(Parser)]
 #[command(name = "nose", about = "Agent Activity Observability")]
@@ -20,6 +22,8 @@ struct Cli {
 enum Commands {
     /// Parse agent sessions and emit unified JSONL events
     Parse,
+    /// Show a statistics summary of agent activity in the current directory
+    Stats,
     /// Manage agent hook configuration
     Hooks {
         #[command(subcommand)]
@@ -46,6 +50,7 @@ fn main() {
     let cli = Cli::parse();
     match cli.command {
         Commands::Parse => run_parse(),
+        Commands::Stats => run_stats(),
         Commands::Hooks { action } => match action {
             HookAction::Install => run_install(),
             HookAction::Uninstall => run_uninstall(),
@@ -54,10 +59,13 @@ fn main() {
     }
 }
 
-fn run_parse() {
+/// Iterate over all discovered session events and call a callback for each batch.
+fn for_each_session_events<F>(mut callback: F)
+where
+    F: FnMut(&[Event]),
+{
     let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
     let adapters = all_adapters();
-    let mut out = stdout().lock();
 
     for adapter in &adapters {
         let search_paths = adapter.discovery_paths(&cwd);
@@ -67,22 +75,49 @@ fn run_parse() {
             let file = match File::open(&session.path) {
                 Ok(f) => f,
                 Err(e) => {
-                    eprintln!("nose: warning: could not open {}: {}", session.path.display(), e);
+                    eprintln!(
+                        "nose: warning: could not open {}: {}",
+                        session.path.display(),
+                        e
+                    );
                     continue;
                 }
             };
 
             let mut reader = file;
             match adapter.parse(&mut reader, &session.session_id, &session.workspace) {
-                Ok(events) => {
-                    if let Err(e) = write_events_jsonl(&events, &mut out) {
-                        eprintln!("nose: warning: write error: {}", e);
-                    }
-                }
+                Ok(events) => callback(&events),
                 Err(e) => {
-                    eprintln!("nose: warning: failed to parse {}: {}", session.path.display(), e);
+                    eprintln!(
+                        "nose: warning: failed to parse {}: {}",
+                        session.path.display(),
+                        e
+                    );
                 }
             }
         }
     }
+}
+
+fn run_parse() {
+    let mut out = stdout().lock();
+    for_each_session_events(|events| {
+        if let Err(e) = write_events_jsonl(events, &mut out) {
+            eprintln!("nose: warning: write error: {}", e);
+        }
+    });
+}
+
+fn run_stats() {
+    let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let workspace = cwd.display().to_string();
+    let mut stats = Stats::new();
+
+    for_each_session_events(|events| {
+        for event in events {
+            stats.add_event(event);
+        }
+    });
+
+    stats.display(&workspace);
 }
