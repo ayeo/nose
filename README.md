@@ -119,24 +119,24 @@ What events `nose parse` can extract from each agent's native log files.
 
 ✅ direct  ⚠️ derived from other data  ❌ not supported
 
-| Event | Claude Code | Codex CLI | Gemini CLI |
-|---|---|---|---|
-| SessionStart | ⚠️ | ⚠️ | ⚠️ |
-| SessionEnd | ⚠️ | ⚠️ | ⚠️ |
-| ModelRequest | ✅ | ✅ | ✅ |
-| ModelResponse | ✅ | ✅ | ✅ |
-| ToolCall | ✅ | ✅ | ✅ |
-| ToolResult | ✅ | ✅ | ✅ |
-| FileRead | ⚠️ | ⚠️ | ⚠️ |
-| FileWrite | ⚠️ | ⚠️ | ⚠️ |
-| FileDelete | ⚠️ | ⚠️ | ⚠️ |
-| CommandExec | ⚠️ | ⚠️ | ⚠️ |
-| SubagentStart | ⚠️ | ❌ | ❌ |
-| SubagentEnd | ❌ | ❌ | ❌ |
-| NetworkCall | ⚠️ | ❌ | ⚠️ |
-| McpCall | ⚠️ | ❌ | ❌ |
-| Artifact | ❌ | ❌ | ❌ |
-| Error | ❌ | ❌ | ✅ |
+| Event | Claude Code | Codex CLI | Gemini CLI | Cursor | Copilot |
+|---|---|---|---|---|---|
+| SessionStart | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ✅ |
+| SessionEnd | ⚠️ | ⚠️ | ⚠️ | ✅ | ✅ |
+| ModelRequest | ✅ | ✅ | ✅ | ❌ | ❌ |
+| ModelResponse | ✅ | ✅ | ✅ | ❌ | ❌ |
+| ToolCall | ✅ | ✅ | ✅ | ❌ | ✅ |
+| ToolResult | ✅ | ✅ | ✅ | ❌ | ✅ |
+| FileRead | ⚠️ | ⚠️ | ⚠️ | ✅ | ⚠️ |
+| FileWrite | ⚠️ | ⚠️ | ⚠️ | ✅ | ⚠️ |
+| FileDelete | ⚠️ | ⚠️ | ⚠️ | ❌ | ⚠️ |
+| CommandExec | ⚠️ | ⚠️ | ⚠️ | ✅ | ⚠️ |
+| SubagentStart | ⚠️ | ❌ | ❌ | ❌ | ❌ |
+| SubagentEnd | ❌ | ❌ | ❌ | ❌ | ❌ |
+| NetworkCall | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
+| McpCall | ⚠️ | ❌ | ❌ | ✅ | ❌ |
+| Artifact | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Error | ❌ | ❌ | ✅ | ❌ | ✅ |
 
 ## Hook Support Matrix
 
@@ -144,17 +144,17 @@ What events `nose hooks install` captures in real-time from each agent.
 
 ✅ direct  ⚠️ derived from other hook events  ❌ not supported
 
-| Event | Claude Code | Codex CLI | Gemini CLI |
-|---|---|---|---|
-| SessionStart | ✅ | ✅ | ✅ |
-| SessionEnd | ✅ | ✅ | ✅ |
-| ToolCall | ✅ | ❌ | ✅ |
-| ToolResult | ✅ | ❌ | ✅ |
-| FileRead | ⚠️ | ❌ | ⚠️ |
-| FileWrite | ⚠️ | ❌ | ⚠️ |
-| CommandExec | ⚠️ | ❌ | ⚠️ |
-| McpCall | ⚠️ | ❌ | ❌ |
-| SubagentStart | ⚠️ | ❌ | ❌ |
+| Event | Claude Code | Codex CLI | Gemini CLI | Cursor | Copilot |
+|---|---|---|---|---|---|
+| SessionStart | ✅ | ✅ | ✅ | ❌ | ❌ |
+| SessionEnd | ✅ | ✅ | ✅ | ❌ | ❌ |
+| ToolCall | ✅ | ❌ | ✅ | ❌ | ❌ |
+| ToolResult | ✅ | ❌ | ✅ | ❌ | ❌ |
+| FileRead | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
+| FileWrite | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
+| CommandExec | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
+| McpCall | ⚠️ | ❌ | ❌ | ❌ | ❌ |
+| SubagentStart | ⚠️ | ❌ | ❌ | ❌ | ❌ |
 
 ## Architecture
 
