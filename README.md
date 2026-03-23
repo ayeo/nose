@@ -50,6 +50,22 @@ nose parse | jq 'select(.event_type == "CommandExec") | .command'
 nose parse | jq -r '.event_type' | sort | uniq -c | sort -rn
 ```
 
+### Stats
+
+```bash
+nose stats
+```
+
+Shows a summary: sessions, events by type, token usage, models used, top tools, files touched.
+
+### Watch (real-time streaming)
+
+```bash
+nose watch
+```
+
+Streams events to stdout as they happen. Watches agent log files and `~/.nose/events/` for changes.
+
 ### Hooks (real-time capture)
 
 Install hooks into all detected agents:
@@ -164,12 +180,12 @@ What events `nose hooks install` captures in real-time from each agent.
 ```mermaid
 graph LR
     CWD[cwd] --> D[Discovery]
-    D --> C[Claude ~/.claude/projects/]
-    D --> X[Codex ~/.codex/sessions/]
-    D --> G[Gemini ~/.gemini/projects/]
-    D --> R[Cursor ~/Library/.../Cursor/]
-    D --> P[Copilot ~/.github-copilot/]
-    D --> H[Hooks ~/.nose/events/]
+    D --> C["Claude ~/.claude/projects/{cwd}/"]
+    D --> X["Codex ~/.codex/sessions/{cwd}/"]
+    D --> G["Gemini ~/.gemini/projects/{cwd}/"]
+    D --> R["Cursor .../workspaceStorage/"]
+    D --> P["Copilot ~/.github-copilot/"]
+    D --> H["Hooks ~/.nose/events/"]
     C --> A[adapter.parse]
     X --> A
     G --> A
