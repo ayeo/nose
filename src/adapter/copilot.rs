@@ -167,17 +167,43 @@ impl Adapter for CopilotAdapter {
     }
 
     fn discovery_paths(&self, _cwd: &Path) -> Vec<PathBuf> {
+        let mut paths = Vec::new();
+
+        // ~/.github-copilot/ (works on both macOS and Linux)
         if let Some(home) = std::env::var_os("HOME").map(PathBuf::from) {
-            let path = home.join(".github-copilot");
-            if path.exists() {
-                return vec![path];
+            let dotfile = home.join(".github-copilot");
+            if dotfile.exists() {
+                paths.push(dotfile);
             }
         }
-        vec![]
+
+        // Platform-specific paths
+        match std::env::consts::OS {
+            "macos" => {
+                if let Some(data_dir) = dirs::data_dir() {
+                    let path = data_dir.join("github-copilot");
+                    if path.exists() {
+                        paths.push(path);
+                    }
+                }
+            }
+            "linux" => {
+                if let Some(config_dir) = dirs::config_dir() {
+                    let path = config_dir.join("github-copilot");
+                    if path.exists() {
+                        paths.push(path);
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        paths
     }
 
     fn detect(&self, path: &Path) -> bool {
-        path.to_string_lossy().contains(".github-copilot")
+        let s = path.to_string_lossy();
+        (s.contains("github-copilot"))
             && path.extension().is_some_and(|ext| ext == "jsonl")
     }
 
