@@ -117,40 +117,44 @@ All events share common fields:
 
 What events `nose parse` can extract from each agent's native log files.
 
+✅ native  ⚠️ inferred  ❌ not available
+
 | Event | Claude Code | Codex CLI | Gemini CLI |
 |---|---|---|---|
-| SessionStart | inferred | inferred | inferred |
-| SessionEnd | inferred | inferred | inferred |
-| ModelRequest | native | native | native |
-| ModelResponse | native | native | native |
-| ToolCall | native | native | native |
-| ToolResult | native | native | native |
-| FileRead | inferred | inferred | inferred |
-| FileWrite | inferred | inferred | inferred |
-| FileDelete | inferred | inferred | inferred |
-| CommandExec | inferred | inferred | inferred |
-| SubagentStart | inferred | - | - |
-| SubagentEnd | - | - | - |
-| NetworkCall | inferred | - | inferred |
-| McpCall | inferred | - | - |
-| Artifact | - | - | - |
-| Error | - | - | native |
+| SessionStart | ⚠️ | ⚠️ | ⚠️ |
+| SessionEnd | ⚠️ | ⚠️ | ⚠️ |
+| ModelRequest | ✅ | ✅ | ✅ |
+| ModelResponse | ✅ | ✅ | ✅ |
+| ToolCall | ✅ | ✅ | ✅ |
+| ToolResult | ✅ | ✅ | ✅ |
+| FileRead | ⚠️ | ⚠️ | ⚠️ |
+| FileWrite | ⚠️ | ⚠️ | ⚠️ |
+| FileDelete | ⚠️ | ⚠️ | ⚠️ |
+| CommandExec | ⚠️ | ⚠️ | ⚠️ |
+| SubagentStart | ⚠️ | ❌ | ❌ |
+| SubagentEnd | ❌ | ❌ | ❌ |
+| NetworkCall | ⚠️ | ❌ | ⚠️ |
+| McpCall | ⚠️ | ❌ | ❌ |
+| Artifact | ❌ | ❌ | ❌ |
+| Error | ❌ | ❌ | ✅ |
 
 ## Hook Support Matrix
 
 What events `nose hooks install` captures in real-time from each agent.
 
+✅ native  ⚠️ inferred from hook data  ❌ not available
+
 | Event | Claude Code | Codex CLI | Gemini CLI |
 |---|---|---|---|
-| SessionStart | native | native | native |
-| SessionEnd | native | native | native |
-| ToolCall | native (PreToolUse) | - | native (BeforeTool) |
-| ToolResult | native (PostToolUse) | - | native (AfterTool) |
-| FileRead | inferred from ToolCall | - | inferred from ToolCall |
-| FileWrite | inferred from ToolCall | - | inferred from ToolCall |
-| CommandExec | inferred from ToolCall | - | inferred from ToolCall |
-| McpCall | inferred from ToolCall | - | - |
-| SubagentStart | inferred from ToolCall | - | - |
+| SessionStart | ✅ | ✅ | ✅ |
+| SessionEnd | ✅ | ✅ | ✅ |
+| ToolCall | ✅ | ❌ | ✅ |
+| ToolResult | ✅ | ❌ | ✅ |
+| FileRead | ⚠️ | ❌ | ⚠️ |
+| FileWrite | ⚠️ | ❌ | ⚠️ |
+| CommandExec | ⚠️ | ❌ | ⚠️ |
+| McpCall | ⚠️ | ❌ | ❌ |
+| SubagentStart | ⚠️ | ❌ | ❌ |
 
 ## Architecture
 
