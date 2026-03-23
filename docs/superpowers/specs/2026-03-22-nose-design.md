@@ -1,4 +1,4 @@
-# Nose — Agent Activity Observability — Design Spec
+# Nose - Agent Activity Observability - Design Spec
 
 ## Problem
 
@@ -14,33 +14,31 @@ nose parse
 
 No flags, no config. Nose detects installed agents, finds sessions, and outputs unified events to stdout.
 
-**Nose reads files only.** It does not install hooks or run agents. It parses the log/transcript files that agents leave on disk. The "hooks" referenced in the support matrix describe what data the agent *writes* — Nose reads those files post-hoc.
+**Nose reads files only.** It does not install hooks or run agents. It parses the log/transcript files that agents leave on disk. The "hooks" referenced in the support matrix describe what data the agent *writes* - Nose reads those files post-hoc.
 
 **Platform:** macOS and Linux only.
 
 ## Architecture
 
 ```
-Known agent paths ──→ Discovery ──→ Session files
-                                        │
-                              Format detection
-                                        │
-                              Adapter selection
-                                        │
-Claude adapter ───┐
-Codex adapter ────┤
-Gemini adapter ───┤──→ Unified Events ──→ JSONL (stdout)
-Cursor adapter ───┤
-Copilot adapter ──┘
+Known agent paths -> Discovery -> Session files
+                                       |
+                             Format detection
+                                       |
+                             Adapter selection
+                                       |
+Claude adapter --\
+Codex adapter  ---+-- Unified Events -> JSONL (stdout)
+Gemini adapter --/
 ```
 
 ### Pipeline
 
-1. **Discovery** — scan known paths for each agent type
-2. **Detection** — identify agent type from file structure/content
-3. **Parsing** — agent-specific adapter reads raw data
-4. **Normalization** — adapter emits unified events
-5. **Output** — JSONL to stdout
+1. **Discovery** - scan known paths for each agent type
+2. **Detection** - identify agent type from file structure/content
+3. **Parsing** - agent-specific adapter reads raw data
+4. **Normalization** - adapter emits unified events
+5. **Output** - JSONL to stdout
 
 ### Adapter trait
 
@@ -63,9 +61,9 @@ Adapters are stateless. `object` fields in the event model map to `serde_json::V
 
 | Agent | Known paths | Raw format |
 |---|---|---|
-| Claude Code | `~/.claude/projects/*/` | JSONL transcripts — one JSON object per line, each with `type` field (e.g. `tool_use`, `tool_result`, `text`) |
-| Codex CLI | `~/.codex/log/` | JSON log files — structured events with `type` field (e.g. `thread.started`, `turn.completed`, `item`) |
-| Gemini CLI | `~/.gemini/` | Stream-JSON — JSONL with event types like `tool_use`, `tool_result`, `result`, `error` |
+| Claude Code | `~/.claude/projects/*/` | JSONL transcripts - one JSON object per line, each with `type` field (e.g. `tool_use`, `tool_result`, `text`) |
+| Codex CLI | `~/.codex/log/` | JSON log files - structured events with `type` field (e.g. `thread.started`, `turn.completed`, `item`) |
+| Gemini CLI | `~/.gemini/` | Stream-JSON - JSONL with event types like `tool_use`, `tool_result`, `result`, `error` |
 | Cursor | `~/Library/Application Support/Cursor/` (macOS), `~/.config/cursor/` (Linux) | Hook output JSON files |
 | Copilot | `~/.github-copilot/` | Hook output JSON files |
 
@@ -84,7 +82,7 @@ Every event contains:
 | `timestamp` | ISO 8601 | When the event occurred |
 | `agent_type` | enum | `claude` \| `codex` \| `gemini` \| `cursor` \| `copilot` |
 | `workspace` | string | Working directory path |
-| `confidence` | enum | `native` \| `inferred` — whether event was directly reported or inferred from parsing |
+| `confidence` | enum | `native` \| `inferred` - whether event was directly reported or inferred from parsing |
 | `raw_payload` | object? | Optional original agent-specific payload, preserved for lossless round-tripping |
 
 ### JSONL Output Format
@@ -288,11 +286,11 @@ nose/
 
 ## Dependencies (Rust crates)
 
-- `clap` — CLI argument parsing
-- `serde` + `serde_json` — JSON serialization/deserialization
-- `uuid` — event ID generation
-- `chrono` — timestamps
-- `glob` / `walkdir` — file discovery
+- `clap` - CLI argument parsing
+- `serde` + `serde_json` - JSON serialization/deserialization
+- `uuid` - event ID generation
+- `chrono` - timestamps
+- `glob` / `walkdir` - file discovery
 
 ## Error Handling
 
@@ -305,11 +303,11 @@ Nose never fails hard. It emits what it can and warns about what it can't.
 
 ## Design Decisions
 
-- **No `agent_name` field** — `agent_type` enum is sufficient. If needed later, it can be derived.
-- **`confidence` restored from idea.md** — inferred events (e.g. FileRead parsed from a ToolCall) are marked `inferred`, natively reported events are `native`.
-- **`raw_payload` restored from idea.md** — optional, allows lossless round-tripping. Adapters include it when available.
-- **No `run_id`** — idea.md distinguished `session_id` from `run_id`. For v1, `session_id` is sufficient. Can be added later if agents expose distinct run semantics.
-- **File-based only** — Nose reads files post-hoc. No runtime hooks, no agent wrapping. This keeps it simple and non-invasive.
+- **No `agent_name` field** - `agent_type` enum is sufficient. If needed later, it can be derived.
+- **`confidence` restored from idea.md** - inferred events (e.g. FileRead parsed from a ToolCall) are marked `inferred`, natively reported events are `native`.
+- **`raw_payload` restored from idea.md** - optional, allows lossless round-tripping. Adapters include it when available.
+- **No `run_id`** - idea.md distinguished `session_id` from `run_id`. For v1, `session_id` is sufficient. Can be added later if agents expose distinct run semantics.
+- **File-based only** - Nose reads files post-hoc. No runtime hooks, no agent wrapping. This keeps it simple and non-invasive.
 
 ## Out of Scope (for now)
 

@@ -4,7 +4,7 @@
 
 **Goal:** Build a Rust CLI tool that auto-discovers AI coding agent sessions and emits unified JSONL events to stdout.
 
-**Architecture:** `nose parse` discovers agent session files at known paths, selects the right adapter per agent, parses raw logs into unified Event structs, and serializes them as JSONL to stdout. Each adapter implements the same trait. Error handling is graceful — skip and warn.
+**Architecture:** `nose parse` discovers agent session files at known paths, selects the right adapter per agent, parses raw logs into unified Event structs, and serializes them as JSONL to stdout. Each adapter implements the same trait. Error handling is graceful - skip and warn.
 
 **Tech Stack:** Rust, clap, serde/serde_json, uuid, chrono, walkdir
 
@@ -37,7 +37,7 @@ nose/
 │   └── integration_test.rs
 ```
 
-Note: Codex, Gemini, Cursor, and Copilot adapters follow the same pattern as Claude. They are not included in this plan — each gets its own plan after Claude adapter is working end-to-end.
+Note: Codex, Gemini, Cursor, and Copilot adapters follow the same pattern as Claude. They are not included in this plan - each gets its own plan after Claude adapter is working end-to-end.
 
 ---
 
@@ -216,7 +216,7 @@ fn test_event_roundtrip() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cargo test --test event_test`
-Expected: FAIL — module `nose::event` does not exist
+Expected: FAIL - module `nose::event` does not exist
 
 - [ ] **Step 3: Create error.rs**
 
@@ -466,7 +466,7 @@ fn test_write_events_jsonl() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cargo test --test event_test test_write_events_jsonl`
-Expected: FAIL — `nose::output` does not exist
+Expected: FAIL - `nose::output` does not exist
 
 - [ ] **Step 3: Implement output.rs**
 
@@ -596,7 +596,7 @@ The Claude Code transcript format (from `~/.claude/projects/*/`):
 - Common fields per line: `sessionId`, `cwd`, `timestamp`, `uuid`
 - Assistant messages include `message.model` and `message.usage` (input_tokens, output_tokens)
 
-- [ ] **Step 1: Create test fixture — simple session**
+- [ ] **Step 1: Create test fixture - simple session**
 
 Create `tests/fixtures/claude/simple_session.jsonl`:
 
@@ -605,7 +605,7 @@ Create `tests/fixtures/claude/simple_session.jsonl`:
 {"type":"assistant","sessionId":"sess_01","cwd":"/project","timestamp":"2026-03-22T10:00:01Z","uuid":"u2","parentUuid":"u1","isSidechain":false,"version":"2.1.56","message":{"model":"claude-opus-4-6","id":"msg_01","type":"message","role":"assistant","content":[{"type":"text","text":"Hello!"}],"stop_reason":"end_turn","usage":{"input_tokens":100,"output_tokens":50}}}
 ```
 
-- [ ] **Step 2: Create test fixture — tool use session**
+- [ ] **Step 2: Create test fixture - tool use session**
 
 Create `tests/fixtures/claude/tool_use_session.jsonl`:
 
@@ -689,7 +689,7 @@ fn test_claude_discovery_paths() {
 - [ ] **Step 4: Run tests to verify they fail**
 
 Run: `cargo test --test claude_adapter_test`
-Expected: FAIL — ClaudeAdapter::parse returns empty vec
+Expected: FAIL - ClaudeAdapter::parse returns empty vec
 
 - [ ] **Step 5: Implement Claude adapter**
 
@@ -908,7 +908,7 @@ impl Adapter for ClaudeAdapter {
                 Some("assistant") => {
                     events.extend(self.parse_assistant_message(&line, session_id, workspace));
                 }
-                // user, progress, file-history-snapshot — skip for now
+                // user, progress, file-history-snapshot - skip for now
                 _ => {}
             }
         }
@@ -985,7 +985,7 @@ fn test_discover_skips_missing_paths() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cargo test --test discovery_test`
-Expected: FAIL — `nose::discovery` does not exist
+Expected: FAIL - `nose::discovery` does not exist
 
 - [ ] **Step 3: Add tempfile dev-dependency**
 
@@ -1168,7 +1168,7 @@ fn test_nose_parse_empty_home() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cargo test --test integration_test`
-Expected: FAIL — nose parse prints to stderr, not stdout
+Expected: FAIL - nose parse prints to stderr, not stdout
 
 - [ ] **Step 3: Wire up main.rs**
 
