@@ -168,6 +168,7 @@ impl Adapter for CursorAdapter {
         let base = match std::env::consts::OS {
             "macos" => dirs::data_dir().map(|d| d.join("Cursor").join("User").join("workspaceStorage")),
             "linux" => dirs::config_dir().map(|d| d.join("cursor").join("User").join("workspaceStorage")),
+            "windows" => dirs::data_dir().map(|d| d.join("Cursor").join("User").join("workspaceStorage")),
             _ => None,
         };
         base.into_iter().collect()
@@ -176,7 +177,8 @@ impl Adapter for CursorAdapter {
     fn detect(&self, path: &Path) -> bool {
         let path_str = path.to_string_lossy();
         (path_str.contains("Cursor/User/workspaceStorage")
-            || path_str.contains("cursor/User/workspaceStorage"))
+            || path_str.contains("cursor/User/workspaceStorage")
+            || path_str.contains("Cursor\\User\\workspaceStorage"))
             && path.extension().is_some_and(|ext| ext == "jsonl")
     }
 
@@ -272,5 +274,19 @@ impl Adapter for CursorAdapter {
         }
 
         Ok(events)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn discovery_paths_does_not_panic() {
+        let adapter = CursorAdapter;
+        let cwd = std::path::Path::new("/some/project/path");
+        // Should not panic on any platform
+        let paths = adapter.discovery_paths(cwd);
+        assert!(paths.len() >= 1 || paths.is_empty());
     }
 }

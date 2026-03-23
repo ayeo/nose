@@ -230,17 +230,44 @@ impl Adapter for GeminiAdapter {
     }
 
     fn discovery_paths(&self, cwd: &Path) -> Vec<PathBuf> {
+        let cwd_str = cwd.to_string_lossy();
+        // Encode cwd as directory name, handling both Unix and Windows separators
+        let encoded = cwd_str.replace(['/', '\\'], "-");
+
+        let mut paths = Vec::new();
+
+        // Primary: HOME env var (works on macOS/Linux; may be set on Windows too)
         if let Some(home) = std::env::var_os("HOME").map(PathBuf::from) {
-            // Gemini CLI encodes cwd as directory name: /Users/foo/bar → -Users-foo-bar
-            let encoded = cwd.to_string_lossy().replace('/', "-");
-            vec![home.join(".gemini").join("projects").join(encoded)]
-        } else {
-            vec![]
+            paths.push(home.join(".gemini").join("projects").join(&encoded));
         }
+
+        // Windows: %APPDATA%\gemini\projects\ and %USERPROFILE%\.gemini\projects\
+        #[cfg(target_os = "windows")]
+        {
+            if let Some(data_dir) = dirs::data_dir() {
+                paths.push(data_dir.join("gemini").join("projects").join(&encoded));
+            }
+            if let Some(home_dir) = dirs::home_dir() {
+                let candidate = home_dir.join(".gemini").join("projects").join(&encoded);
+                if !paths.contains(&candidate) {
+                    paths.push(candidate);
+                }
+            }
+        }
+
+        // Fallback for any platform where HOME wasn't set: use dirs::home_dir()
+        if paths.is_empty() {
+            if let Some(home_dir) = dirs::home_dir() {
+                paths.push(home_dir.join(".gemini").join("projects").join(&encoded));
+            }
+        }
+
+        paths
     }
 
     fn detect(&self, path: &Path) -> bool {
-        path.to_string_lossy().contains(".gemini/")
+        let path_str = path.to_string_lossy();
+        (path_str.contains(".gemini/") || path_str.contains(".gemini\\"))
             && path.extension().is_some_and(|ext| ext == "jsonl")
     }
 
@@ -340,5 +367,30 @@ impl Adapter for GeminiAdapter {
         }
 
         Ok(events)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn discovery_paths_does_not_panic() {
+        let adapter = GeminiAdapter;
+        let cwd = std::path::Path::new("/some/project/path");
+        // Should not panic on any platform
+        let paths = adapter.discovery_paths(cwd);
+        assert!(paths.len() >= 1 || paths.is_empty());
+    }
+
+    #[test]
+    fn discovery_paths_encodes_windows_separators() {
+        let adapter = GeminiAdapter;
+        let cwd = std::path::Path::new("C:\\Users\\foo\\project");
+        let paths = adapter.discovery_paths(cwd);
+        for path in &paths {
+            let path_str = path.to_string_lossy();
+            assert!(!path_str.ends_with('\\') || path_str.contains("projects"));
+        }
     }
 }

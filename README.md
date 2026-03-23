@@ -2,7 +2,7 @@
 
 Unified event format for AI coding agent actions. Nose auto-discovers agent sessions on your machine, parses their logs, and emits a consistent JSONL event stream.
 
-**Lang:** Rust | **Output:** JSONL | **Platform:** macOS, Linux
+**Lang:** Rust | **Output:** JSONL | **Platform:** macOS, Linux, Windows
 
 ## Installation
 

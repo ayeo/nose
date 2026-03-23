@@ -169,11 +169,21 @@ impl Adapter for CopilotAdapter {
     fn discovery_paths(&self, _cwd: &Path) -> Vec<PathBuf> {
         let mut paths = Vec::new();
 
-        // ~/.github-copilot/ (works on both macOS and Linux)
+        // ~/.github-copilot/ via HOME env var (works on macOS/Linux; may be set on Windows too)
         if let Some(home) = std::env::var_os("HOME").map(PathBuf::from) {
             let dotfile = home.join(".github-copilot");
             if dotfile.exists() {
                 paths.push(dotfile);
+            }
+        }
+
+        // Fallback: use dirs::home_dir() for platforms where HOME isn't set (e.g. Windows)
+        if paths.is_empty() {
+            if let Some(home_dir) = dirs::home_dir() {
+                let dotfile = home_dir.join(".github-copilot");
+                if dotfile.exists() {
+                    paths.push(dotfile);
+                }
             }
         }
 
@@ -192,6 +202,22 @@ impl Adapter for CopilotAdapter {
                     let path = config_dir.join("github-copilot");
                     if path.exists() {
                         paths.push(path);
+                    }
+                }
+            }
+            "windows" => {
+                // %APPDATA%\github-copilot\
+                if let Some(data_dir) = dirs::data_dir() {
+                    let path = data_dir.join("github-copilot");
+                    if path.exists() {
+                        paths.push(path);
+                    }
+                }
+                // %USERPROFILE%\.github-copilot\ (via dirs::home_dir())
+                if let Some(home_dir) = dirs::home_dir() {
+                    let dotfile = home_dir.join(".github-copilot");
+                    if dotfile.exists() && !paths.contains(&dotfile) {
+                        paths.push(dotfile);
                     }
                 }
             }
@@ -302,5 +328,18 @@ impl Adapter for CopilotAdapter {
         }
 
         Ok(events)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn discovery_paths_does_not_panic() {
+        let adapter = CopilotAdapter;
+        let cwd = std::path::Path::new("/some/project/path");
+        // Should not panic on any platform; paths that don't exist are simply not included
+        let _paths = adapter.discovery_paths(cwd);
     }
 }
