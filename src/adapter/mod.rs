@@ -1,6 +1,7 @@
 pub mod claude;
 pub mod codex;
 pub mod gemini;
+pub mod hook;
 
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -20,5 +21,6 @@ pub fn all_adapters() -> Vec<Box<dyn Adapter>> {
         Box::new(claude::ClaudeAdapter),
         Box::new(codex::CodexAdapter),
         Box::new(gemini::GeminiAdapter),
+        Box::new(hook::HookAdapter),
     ]
 }
